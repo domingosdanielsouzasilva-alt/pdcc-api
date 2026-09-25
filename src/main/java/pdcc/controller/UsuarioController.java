@@ -1,6 +1,7 @@
 package pdcc.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -21,23 +22,26 @@ public class UsuarioController {
     private BCryptPasswordEncoder passwordEncoder;
 
     @GetMapping
-    public List<Usuario> listar() {
-        return usuarioRepository.findAll();
+    public ResponseEntity<?> listar(@RequestHeader(value = "Role", required = false) String role) {
+        return ResponseEntity.ok(usuarioRepository.findAll());
     }
 
     @PostMapping
-    public ResponseEntity<Usuario> salvar(@RequestBody Usuario usuario) {
+    public ResponseEntity<?> criar(@RequestBody Usuario usuario, @RequestParam(required = false) String requesterRole) {
+        if (usuarioRepository.findByUsername(usuario.getUsername()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Nome de usuário já existe.");
+        }
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
-        Usuario novoUsuario = usuarioRepository.save(usuario);
-        return ResponseEntity.ok(novoUsuario);
+        Usuario novo = usuarioRepository.save(usuario);
+        return ResponseEntity.ok(novo);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+    public ResponseEntity<?> deletar(@PathVariable Long id) {
         if (usuarioRepository.existsById(id)) {
             usuarioRepository.deleteById(id);
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
     }
 }
