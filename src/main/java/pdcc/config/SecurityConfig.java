@@ -23,8 +23,7 @@ public class SecurityConfig {
             UserDetailsService userDetailsService,
             BCryptPasswordEncoder passwordEncoder
     ) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
@@ -32,14 +31,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(org.springframework.security.config.Customizer.withDefaults()) // Habilita o CORS para a Vercel
-                .csrf(csrf -> csrf.disable()) // Desativa CSRF para APIs REST
+                .cors(org.springframework.security.config.Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/veiculos/*/consulta").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/veiculos/*/qrcode").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-
+   
                         .requestMatchers("/api/clientes/**").permitAll()
                         .requestMatchers("/api/veiculos/**").permitAll()
                         .requestMatchers("/api/servicos/**").permitAll()
