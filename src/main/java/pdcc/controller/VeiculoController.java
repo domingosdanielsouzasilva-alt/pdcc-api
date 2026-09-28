@@ -70,7 +70,7 @@ public class VeiculoController {
 
     @GetMapping("/{id}/qrcode")
     public void gerarQrCode(@PathVariable Long id, HttpServletResponse response) throws Exception {
-        String url = "https://pdcc-beta.vercel.app/consulta.html?id=" + id;
+        String url = "https://pdcc-theta.vercel.app/consulta.html?id=" + id;
 
         BitMatrix matrix = new MultiFormatWriter().encode(
                 url,
