@@ -14,7 +14,6 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.OutputStream;
 import java.util.List;
 
@@ -71,13 +70,15 @@ public class VeiculoController {
 
     @GetMapping("/{id}/qrcode")
     public void gerarQrCode(@PathVariable Long id, HttpServletResponse response) throws Exception {
-        String url = baseUrl + "/api/veiculos/" + id + "/consulta";
+        String url = "https://pdcc-beta.vercel.app/consulta.html?id=" + id;
+
         BitMatrix matrix = new MultiFormatWriter().encode(
                 url,
                 BarcodeFormat.QR_CODE,
                 250,
                 250
         );
+        
         response.setContentType("image/png");
         OutputStream outputStream = response.getOutputStream();
         MatrixToImageWriter.writeToStream(matrix, "PNG", outputStream);
