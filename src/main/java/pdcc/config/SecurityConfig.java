@@ -31,21 +31,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(org.springframework.security.config.Customizer.withDefaults()) // Habilita o CORS para a Vercel
+                .cors(org.springframework.security.config.Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable()) // Desativa CSRF para APIs REST
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Sessão stateless ou ajustada para API
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/veiculos/*/consulta").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/veiculos/*/qrcode").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-
-                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/usuarios/**").hasRole("ADMIN")
-
+ 
+                        .requestMatchers("/api/clientes/**").permitAll()
+                        .requestMatchers("/api/veiculos/**").permitAll()
+                        .requestMatchers("/api/servicos/**").permitAll()
+                        .requestMatchers("/api/dashboard/**").permitAll()
+                        .requestMatchers("/api/garantias/**").permitAll()
+                        
+                        .requestMatchers("/api/usuarios/**").permitAll()
+                        
                         .anyRequest().authenticated()
-                )
-                .httpBasic(org.springframework.security.config.Customizer.withDefaults()); // Autenticação básica HTTP para a API
-
+                );
         return http.build();
     }
 }
