@@ -9,9 +9,17 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import pdcc.security.TokenAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
+
+    private final TokenAuthenticationFilter tokenAuthenticationFilter;
+
+    public SecurityConfig(TokenAuthenticationFilter tokenAuthenticationFilter) {
+        this.tokenAuthenticationFilter = tokenAuthenticationFilter;
+    }
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -33,22 +41,22 @@ public class SecurityConfig {
         http
                 .cors(org.springframework.security.config.Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/api/veiculos/*/consulta").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/veiculos/*/qrcode").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-   
-                        .requestMatchers("/api/clientes/**").permitAll()
-                        .requestMatchers("/api/veiculos/**").permitAll()
-                        .requestMatchers("/api/servicos/**").permitAll()
-                        .requestMatchers("/api/dashboard/**").permitAll()
-                        .requestMatchers("/api/garantias/**").permitAll()
-
-                        .requestMatchers("/api/usuarios/**").permitAll()
-                        
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/publico/**").permitAll()
+                        .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll()
+                )
+                .addFilterBefore(
+                        tokenAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
                 );
+
         return http.build();
     }
 }
