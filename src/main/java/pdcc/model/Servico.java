@@ -22,6 +22,7 @@ public class Servico {
     @Column(length = 1000)
     private String servicoExecutado;
 
+    @Column(length = 2000)
     private String pecasTrocadas;
 
     private BigDecimal valorServico;
