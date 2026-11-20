@@ -7,6 +7,7 @@ import com.google.zxing.common.BitMatrix;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pdcc.model.Cliente;
@@ -15,6 +16,7 @@ import pdcc.model.Veiculo;
 import pdcc.repository.ClienteRepository;
 import pdcc.repository.ServicoRepository;
 import pdcc.repository.VeiculoRepository;
+import pdcc.service.VeiculoPublicTokenService;
 
 import java.io.OutputStream;
 import java.util.List;
@@ -32,6 +34,12 @@ public class VeiculoController {
 
     @Autowired
     private ServicoRepository servicoRepository;
+
+    @Autowired
+    private VeiculoPublicTokenService tokenService;
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     @GetMapping
     public List<Veiculo> listar() {
@@ -135,13 +143,21 @@ public class VeiculoController {
             return ResponseEntity.status(409).build();
         }
 
+        tokenService.excluirPorVeiculo(id);
         veiculoRepository.deleteById(id);
+
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/qrcode")
     public void gerarQrCode(@PathVariable Long id, HttpServletResponse response) throws Exception {
-        String url = "https://pdcc-theta.vercel.app/consulta.html?id=" + id;
+        if (!veiculoRepository.existsById(id)) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        String token = tokenService.obterOuCriarToken(id);
+        String url = frontendUrl + "/consulta.html?token=" + token;
 
         BitMatrix matrix = new MultiFormatWriter().encode(
                 url,
