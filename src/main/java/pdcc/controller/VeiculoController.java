@@ -17,7 +17,11 @@ import pdcc.repository.ClienteRepository;
 import pdcc.repository.ServicoRepository;
 import pdcc.repository.VeiculoRepository;
 import pdcc.service.VeiculoPublicTokenService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import pdcc.service.ProntuarioPdfService;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -37,6 +41,9 @@ public class VeiculoController {
 
     @Autowired
     private VeiculoPublicTokenService tokenService;
+
+    @Autowired
+    private ProntuarioPdfService prontuarioPdfService;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -147,6 +154,31 @@ public class VeiculoController {
         veiculoRepository.deleteById(id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/prontuario")
+    public ResponseEntity<byte[]> gerarProntuario(@PathVariable Long id) throws IOException {
+        Veiculo veiculo = veiculoRepository.findById(id)
+                .orElse(null);
+
+        if (veiculo == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<Servico> servicos = servicoRepository.findByVeiculo(veiculo);
+
+        byte[] pdf = prontuarioPdfService.gerar(veiculo, servicos);
+
+        String nomeArquivo = "prontuario-veiculo-" + id + ".pdf";
+
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + nomeArquivo + "\""
+                )
+                .contentType(MediaType.APPLICATION_PDF)
+                .contentLength(pdf.length)
+                .body(pdf);
     }
 
     @GetMapping("/{id}/qrcode")

@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pdcc.model.Servico;
+import pdcc.model.Usuario;
 import pdcc.model.Veiculo;
 import pdcc.repository.ServicoRepository;
+import pdcc.repository.UsuarioRepository;
 import pdcc.repository.VeiculoRepository;
 
 import java.math.BigDecimal;
@@ -23,6 +25,9 @@ public class ServicoController {
 
     @Autowired
     private VeiculoRepository veiculoRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @GetMapping
     public List<Servico> listar() {
@@ -42,7 +47,15 @@ public class ServicoController {
             return ResponseEntity.badRequest().build();
         }
 
+        Usuario responsavel = usuarioRepository.findById(servico.getResponsavel().getId())
+                .orElse(null);
+
+        if (responsavel == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
         servico.setVeiculo(veiculo);
+        servico.setResponsavel(responsavel);
 
         Servico novoServico = servicoRepository.save(servico);
         return ResponseEntity.ok(novoServico);
@@ -78,6 +91,13 @@ public class ServicoController {
             return ResponseEntity.badRequest().build();
         }
 
+        Usuario responsavel = usuarioRepository.findById(servico.getResponsavel().getId())
+                .orElse(null);
+
+        if (responsavel == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
         servicoExistente.setDataServico(servico.getDataServico());
         servicoExistente.setDiagnostico(servico.getDiagnostico());
         servicoExistente.setServicoExecutado(servico.getServicoExecutado());
@@ -85,6 +105,7 @@ public class ServicoController {
         servicoExistente.setValorServico(servico.getValorServico());
         servicoExistente.setGarantiaFim(servico.getGarantiaFim());
         servicoExistente.setVeiculo(veiculo);
+        servicoExistente.setResponsavel(responsavel);
 
         Servico servicoAtualizado = servicoRepository.save(servicoExistente);
         return ResponseEntity.ok(servicoAtualizado);
@@ -102,6 +123,10 @@ public class ServicoController {
 
     private boolean dadosValidos(Servico servico) {
         if (servico.getVeiculo() == null || servico.getVeiculo().getId() == null) {
+            return false;
+        }
+
+        if (servico.getResponsavel() == null || servico.getResponsavel().getId() == null) {
             return false;
         }
 
