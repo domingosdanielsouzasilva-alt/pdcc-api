@@ -15,7 +15,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/publico")
-@CrossOrigin(origins = "*")
 public class PublicoController {
 
     private final VeiculoPublicTokenService tokenService;
